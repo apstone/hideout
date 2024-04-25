@@ -8,6 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// initializeDB initializes the database and creates the required table if it does not exist.
 func initializeDB() *sql.DB {
 	db, err := sql.Open("sqlite3", "hideout.db")
 	if err != nil {
@@ -15,9 +16,10 @@ func initializeDB() *sql.DB {
 	}
 
 	// Create table if not exists
-	createTableSQL := `CREATE TABLE IF NOT EXISTS greetings (
+	createTableSQL := `CREATE TABLE IF NOT EXISTS passwords (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
+        passwordName TEXT NOT NULL UNIQUE,
+        passwordValue TEXT NOT NULL
     );`
 	_, err = db.Exec(createTableSQL)
 	if err != nil {
@@ -27,25 +29,31 @@ func initializeDB() *sql.DB {
 	return db
 }
 
-func insertGreeting(db *sql.DB, name string) {
-	insertSQL := `INSERT INTO greetings (name) VALUES (?)`
-	_, err := db.Exec(insertSQL, name)
+// insertPassword inserts a new password entry into the database.
+func insertPassword(db *sql.DB, passwordName, passwordValue string) {
+	insertSQL := `INSERT INTO passwords (passwordName, passwordValue) VALUES (?, ?)`
+	_, err := db.Exec(insertSQL, passwordName, passwordValue)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func listGreetings(db *sql.DB) {
-	row, err := db.Query("SELECT id, name FROM greetings")
+// listPasswords lists all password entries from the database.
+func listPasswords(db *sql.DB) {
+	row, err := db.Query("SELECT id, passwordName, passwordValue FROM passwords")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer row.Close()
 
+	if !row.Next() {
+		fmt.Println("No passwords stored.")
+	}
+
 	for row.Next() {
 		var id int
-		var name string
-		row.Scan(&id, &name)
-		fmt.Printf("%d: Hello, %s!\n", id, name)
+		var passwordName, passwordValue string
+		row.Scan(&id, &passwordName, &passwordValue)
+		fmt.Printf("%d: %s -> %s\n", id, passwordName, passwordValue)
 	}
 }

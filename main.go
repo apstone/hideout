@@ -8,34 +8,35 @@ import (
 )
 
 func main() {
-	db := initializeDB() // Initialize the database
+	db := initializeDB()
 	defer db.Close()
 
-	rootCmd := &cobra.Command{Use: "hideout", Short: "Hideout is a simple CLI application"}
+	rootCmd := &cobra.Command{
+		Use:   "hideout",
+		Short: "Hideout is a simple password management CLI application",
+	}
 
-	cmdHello := &cobra.Command{
-		Use:   "hello [name]",
-		Short: "Prints Hello and an optional name",
-		Args:  cobra.MaximumNArgs(1),
+	cmdAdd := &cobra.Command{
+		Use:   "add [name] [value]",
+		Short: "Adds a new password",
+		Args:  cobra.ExactArgs(2), // Requires exactly two arguments
 		Run: func(cmd *cobra.Command, args []string) {
-			name := "World"
-			if len(args) > 0 && args[0] != "" {
-				name = args[0]
-			}
-			fmt.Printf("Hello, %s!\n", name)
-			insertGreeting(db, name) // Insert greeting into the database
+			passwordName := args[0]
+			passwordValue := args[1]
+			insertPassword(db, passwordName, passwordValue)
+			fmt.Println("Password added successfully.")
 		},
 	}
 
 	cmdList := &cobra.Command{
 		Use:   "list",
-		Short: "Lists all greetings",
+		Short: "Lists all stored passwords",
 		Run: func(cmd *cobra.Command, args []string) {
-			listGreetings(db) // List all greetings from the database
+			listPasswords(db)
 		},
 	}
 
-	rootCmd.AddCommand(cmdHello, cmdList)
+	rootCmd.AddCommand(cmdAdd, cmdList)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
