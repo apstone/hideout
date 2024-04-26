@@ -23,7 +23,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
 
     - name: Install Dependencies
-      run: go mod tidy && go mod vendor
+      run: go get .
 
     - name: Build
       run: go build -v -o hideout-${{ runner.os }} ./...
