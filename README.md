@@ -1,5 +1,7 @@
 # Hideout
 
+**DISCLAIMER: THIS SOFTWARE IS IN EXPERIMENTAL STAGE AND IS CONSIDERED WORK-IN-PROGRESS (WIP). USE AT YOUR OWN RISK.**
+
 Hideout is a simple command-line interface (CLI) application designed for password management. It allows users to securely store and manage their passwords, providing functionalities such as adding, listing, and setting a master password that must be entered before any operations can be performed.
 
 ## Features
