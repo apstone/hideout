@@ -28,7 +28,7 @@ jobs:
     - name: Build
       run: go build -v -o hideout-${{ runner.os }} ./...
       env:
-        GOOS: ${{ matrix.os }}
+        GOOS: linux
         GOARCH: amd64
 
     - name: Upload Release Asset
