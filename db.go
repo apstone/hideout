@@ -6,6 +6,7 @@ import (
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // initializeDB initializes the database and creates the required table if it does not exist.
@@ -20,6 +21,11 @@ func initializeDB() *sql.DB {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         passwordName TEXT NOT NULL UNIQUE,
         passwordValue TEXT NOT NULL
+    );
+
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT NOT NULL UNIQUE,
+        value TEXT NOT NULL
     );`
 	_, err = db.Exec(createTableSQL)
 	if err != nil {
@@ -27,6 +33,33 @@ func initializeDB() *sql.DB {
 	}
 
 	return db
+}
+
+func setMasterPassword(db *sql.DB, masterPassword string) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(masterPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Exec("INSERT OR REPLACE INTO settings (key, value) VALUES ('masterPassword', ?)", hashedPassword)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func verifyMasterPassword(db *sql.DB, masterPassword string) bool {
+	var hashedPassword string
+	row := db.QueryRow("SELECT value FROM settings WHERE key = 'masterPassword'")
+	err := row.Scan(&hashedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false // Master password not set
+		}
+		log.Fatal(err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(masterPassword))
+	return err == nil
 }
 
 // insertPassword inserts a new password entry into the database.
